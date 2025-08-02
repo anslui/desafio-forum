@@ -38,6 +38,7 @@ public class Topico {
         this.autor = usuario;
         this.curso = curso;
         this.dataDeCriacao = LocalDateTime.now();
+        this.estado = true;
     }
 
     public void desativar() {
