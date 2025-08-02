@@ -1,4 +1,4 @@
-package br.com.alura.forum.api.domain;
+package br.com.alura.forum.api.domain.usuario;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

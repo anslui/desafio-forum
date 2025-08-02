@@ -1,5 +1,7 @@
-package br.com.alura.forum.api.domain;
+package br.com.alura.forum.api.domain.topico;
 
+import br.com.alura.forum.api.domain.curso.Curso;
+import br.com.alura.forum.api.domain.usuario.Usuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,4 +31,16 @@ public class Topico {
     @ManyToOne
     @JoinColumn(name = "curso_id")
     private Curso curso;
+
+    public Topico(String titulo, String mensagem, Usuario usuario, Curso curso) {
+        this.titulo = titulo;
+        this.mensagem = mensagem;
+        this.autor = usuario;
+        this.curso = curso;
+        this.dataDeCriacao = LocalDateTime.now();
+    }
+
+    public void desativar() {
+        this.estado = false;
+    }
 }
