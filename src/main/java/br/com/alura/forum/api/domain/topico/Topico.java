@@ -2,6 +2,7 @@ package br.com.alura.forum.api.domain.topico;
 
 import br.com.alura.forum.api.domain.curso.Curso;
 import br.com.alura.forum.api.domain.usuario.Usuario;
+import br.com.alura.forum.api.infra.ValidacaoException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -41,7 +42,24 @@ public class Topico {
         this.estado = true;
     }
 
+    public void atualizar(DadosAtualizacaoTopico dados, Usuario novoAutor, Curso novoCurso) {
+        if (dados.titulo() != null) {
+            this.titulo = dados.titulo();
+        }
+        if (dados.mensagem() != null) {
+            this.mensagem = dados.mensagem();
+        }
+        if (novoAutor != null) {
+            this.autor = novoAutor;
+        }
+        if (novoCurso != null) {
+            this.curso = novoCurso;
+        }
+    }
     public void desativar() {
+        if (!this.estado){
+            throw new ValidacaoException("Esse tópico já foi desativado.");
+        }
         this.estado = false;
     }
 }

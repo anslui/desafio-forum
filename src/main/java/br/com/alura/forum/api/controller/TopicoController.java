@@ -1,6 +1,7 @@
 package br.com.alura.forum.api.controller;
 
 import br.com.alura.forum.api.domain.topico.*;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -29,8 +30,33 @@ public class TopicoController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<DadosListagemTopico>> listar(@PageableDefault(size = 10, direction = Sort.Direction.ASC, sort = "dataDeCriacao") Pageable paginacao){
+    public ResponseEntity<Page<DadosListagemTopico>> listar(@PageableDefault(direction = Sort.Direction.ASC, sort = "dataDeCriacao") Pageable paginacao){
         var page = topicoRepository.findAllByEstadoTrue(paginacao).map(DadosListagemTopico::new);
         return ResponseEntity.ok(page);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity detalhar(@PathVariable Long id){
+        var topico = topicoRepository.getReferenceById(id);
+        if (!topico.isEstado()) {
+            throw new EntityNotFoundException();
+        }
+        var dto = new DadosListagemTopico(topico);
+        return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping("/{id}")
+    @Transactional
+    public ResponseEntity atualizar(@PathVariable Long id, @RequestBody @Valid DadosAtualizacaoTopico dados){
+        var dto = service.atualizar(id, dados);
+        return ResponseEntity.ok(dto);
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity excluir(@PathVariable Long id){
+        Topico topico = topicoRepository.getReferenceById(id);
+        topico.desativar();
+        return ResponseEntity.noContent().build();
     }
 }
