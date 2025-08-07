@@ -2,9 +2,10 @@ package br.com.alura.forum.api.domain.topico;
 
 import br.com.alura.forum.api.domain.curso.Curso;
 import br.com.alura.forum.api.domain.curso.CursoRepository;
+import br.com.alura.forum.api.domain.usuario.DadosPerfilUsuario;
 import br.com.alura.forum.api.domain.usuario.Usuario;
 import br.com.alura.forum.api.domain.usuario.UsuarioRepository;
-import br.com.alura.forum.api.infra.ValidacaoException;
+import br.com.alura.forum.api.domain.ValidacaoException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,35 +20,32 @@ public class TopicoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public DadosRetornoTopico cadastrar(@Valid DadosCadastroTopico dados) {
+    public DadosRetornoTopico cadastrar(@Valid DadosCadastroTopico dados, DadosPerfilUsuario dadosUsuario) {
         if (!cursoRepository.existsById(dados.idCurso())){
             throw new ValidacaoException("Id do curso informado não existe.");
-        }
-        if (!usuarioRepository.existsById(dados.idAutor())){
-            throw new ValidacaoException("Id do usuário informado não está existe.");
         }
         if (topicoRepository.existsByTituloAndMensagem(dados.titulo(), dados.mensagem())) {
             throw new ValidacaoException("Já existe um tópico com este título e mensagem.");
         }
         Curso curso = cursoRepository.getReferenceById(dados.idCurso());
-        Usuario usuario = usuarioRepository.getReferenceById(dados.idAutor());
+        Usuario usuario = usuarioRepository.getReferenceById(dadosUsuario.id());
 
         Topico topico = new Topico(dados.titulo(), dados.mensagem(), usuario, curso);
         topicoRepository.save(topico);
         return new DadosRetornoTopico(topico);
     }
 
-    public DadosListagemTopico atualizar(Long id, DadosAtualizacaoTopico dados){
-        var topico = topicoRepository.getReferenceById(id);
+    public DadosListagemTopico atualizar(Long id,
+                                         DadosAtualizacaoTopico dados,
+                                         DadosPerfilUsuario dadosUsuario) {
+        Topico topico = topicoRepository.getReferenceById(id);
+        if (!topico.isAutor(dadosUsuario.id())){
+            throw new ValidacaoException("Usuário não é o autor do tópico.");
+        }
 
         Curso novoCurso = null;
         if (dados.idCurso() != null ){
             novoCurso = cursoRepository.findById(dados.idCurso())
-                    .orElseThrow(() -> new ValidacaoException("Id do curso informado não existe."));
-        }
-        Usuario novoAutor = null;
-        if (dados.idAutor() != null){
-            novoAutor = usuarioRepository.findById(dados.idAutor())
                     .orElseThrow(() -> new ValidacaoException("Id do curso informado não existe."));
         }
 
@@ -60,7 +58,17 @@ public class TopicoService {
             throw new ValidacaoException("Já existe um tópico com este título e mensagem.");
         }
 
-        topico.atualizar(dados, novoAutor, novoCurso);
+        topico.atualizar(dados, novoCurso);
         return new DadosListagemTopico(topico);
     }
+
+    public void desativar(Long id, DadosPerfilUsuario dados) {
+        Topico topico = topicoRepository.getReferenceById(id);
+
+        if (!topico.isAutor(dados.id())){
+            throw new ValidacaoException("Usuário não é o autor do tópico.");
+        }
+        topico.desativar();
+    }
+
 }

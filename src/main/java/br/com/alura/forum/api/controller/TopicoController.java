@@ -1,6 +1,8 @@
 package br.com.alura.forum.api.controller;
 
 import br.com.alura.forum.api.domain.topico.*;
+import br.com.alura.forum.api.domain.usuario.DadosPerfilUsuario;
+import br.com.alura.forum.api.domain.usuario.Usuario;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -10,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -24,14 +27,19 @@ public class TopicoController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity cadastrar(@RequestBody @Valid DadosCadastroTopico dados){
-        var dto = service.cadastrar(dados);
+    public ResponseEntity cadastrar(@RequestBody @Valid DadosCadastroTopico dados,
+                                    @AuthenticationPrincipal Usuario usuario){
+
+        var dto = service.cadastrar(dados, new DadosPerfilUsuario(usuario));
         return ResponseEntity.ok().body(dto);
     }
 
     @GetMapping
-    public ResponseEntity<Page<DadosListagemTopico>> listar(@PageableDefault(direction = Sort.Direction.ASC, sort = "dataDeCriacao") Pageable paginacao){
-        var page = topicoRepository.findAllByEstadoTrue(paginacao).map(DadosListagemTopico::new);
+    public ResponseEntity<Page<DadosListagemTopico>> listar(@PageableDefault(direction = Sort.Direction.ASC,
+            sort = "dataDeCriacao") Pageable paginacao){
+
+        var page = topicoRepository.findAllByEstadoTrue(paginacao)
+                .map(DadosListagemTopico::new);
         return ResponseEntity.ok(page);
     }
 
@@ -47,16 +55,20 @@ public class TopicoController {
 
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity atualizar(@PathVariable Long id, @RequestBody @Valid DadosAtualizacaoTopico dados){
-        var dto = service.atualizar(id, dados);
+    public ResponseEntity atualizar(@PathVariable Long id,
+                                    @RequestBody @Valid DadosAtualizacaoTopico dados,
+                                    @AuthenticationPrincipal Usuario usuario){
+
+        var dto = service.atualizar(id, dados, new DadosPerfilUsuario(usuario));
         return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")
     @Transactional
-    public ResponseEntity excluir(@PathVariable Long id){
-        Topico topico = topicoRepository.getReferenceById(id);
-        topico.desativar();
+    public ResponseEntity excluir(@PathVariable Long id,
+                                  @AuthenticationPrincipal Usuario usuario){
+
+        service.desativar(id, new DadosPerfilUsuario(usuario));
         return ResponseEntity.noContent().build();
     }
 }
