@@ -1,3 +1,7 @@
+<p align="center">
+  <img width="250" height="250" alt="Image" src="https://github.com/user-attachments/assets/98f03ac7-9f0e-4119-9f40-f3c3b07fc42f"/>
+</p>
+
 # Fórum API
 
 Uma API REST para um fórum de discussão construída com Spring Boot e Spring Security, feita durante o curso [ONE - Oracle Next Education](https://www.oracle.com/br/education/oracle-next-education/).
